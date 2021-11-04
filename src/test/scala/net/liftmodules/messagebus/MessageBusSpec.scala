@@ -10,11 +10,11 @@ import net.liftweb.actor.{LAScheduler, MockLiftActor}
 class MessageBusSpec extends Specification with BeforeAfterAll {
 
 
-  def beforeAll = {
+  override def beforeAll(): Unit = {
     LAScheduler.onSameThread = true
   }
 
-  def afterAll = {
+  def afterAll(): Unit = {
     LAScheduler.onSameThread = false
   }
 
