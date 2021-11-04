@@ -1,38 +1,38 @@
+val liftVersion = settingKey[String]("Full version number of the Lift Web Framework")
+val liftEdition = settingKey[String]("Lift Edition (short version number to append to artifact name)")
+
 name := "messagebus"
 
 organization := "net.liftmodules"
 
-version := "1.0"
+version := "1.1-SNAPSHOT"
 
-liftVersion <<= liftVersion ?? "3.0-RC1"
+liftVersion := (liftVersion ?? "3.4.3").value
 
-liftEdition <<= liftVersion apply { _.substring(0,3) }
+liftEdition := liftVersion.value.substring(0,3)
 
-moduleName <<= (name, liftEdition) { (n, e) =>  n + "_" + e }
+moduleName := name.value + "_" + liftEdition.value
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.13.6"
 
-crossScalaVersions := Seq("2.11.0", "2.10.0", "2.9.2", "2.9.1-1", "2.9.1")
+crossScalaVersions := Seq("2.13.6", "2.12.14")
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-scalacOptions in Test ++= Seq("-Yrangepos")
+Test / scalacOptions ++= Seq("-Yrangepos")
 
 resolvers ++= Seq("sonatype-snapshots"      at "https://oss.sonatype.org/content/repositories/snapshots",
                   "sonatype-releases"       at "https://oss.sonatype.org/content/repositories/releases",
-                  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+                  "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
                  )
 
-libraryDependencies <++= liftVersion { v =>
-  Seq(
-    "net.liftweb" %% "lift-webkit" % v         % "provided",
-    "org.specs2"  %% "specs2-core" % "3.0"     % "test"
-  )
-}
+libraryDependencies ++= Seq(
+    "net.liftweb" %% "lift-webkit" % liftVersion.value  % "provided",
+    "org.specs2"  %% "specs2-core" % "4.12.12"     % "test"
+)
 
-useGpg := true
-
-usePgpKeyHex("B41A0844")
+//useGpg := true
+//usePgpKeyHex("B41A0844")
 
 //publishTo in ThisBuild := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 publishTo := {
@@ -51,7 +51,7 @@ credentials += Credentials( file("/private/liftmodules/sonatype.credentials") )
 
 publishMavenStyle := true
 
-publishArtifact in Test := false
+Test / publishArtifact := false
 
 pomIncludeRepository := { _ => false }
 
