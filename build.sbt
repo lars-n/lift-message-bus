@@ -1,5 +1,18 @@
-val liftVersion = settingKey[String]("Full version number of the Lift Web Framework")
-val liftEdition = settingKey[String]("Lift Edition (short version number to append to artifact name)")
+import java.util.Properties
+
+val globalSbtProperties = {
+  val prop = new Properties()
+  IO.load(prop, Path.userHome / ".sbt" / "config" / "global-sbt-config.properties")
+  prop
+}
+
+val publishRepoUrl = globalSbtProperties.getProperty("publishRepoUrl")
+val publishRepoUser = globalSbtProperties.getProperty("publishRepoUser")
+val keyFile = Path.userHome / ".ssh" / "id_rsa"
+val publishSshRepo = Resolver.ssh("publish repo", publishRepoUrl,22)(Resolver.ivyStylePatterns) as (publishRepoUser, keyFile) withPublishPermissions("0755")
+
+lazy val liftVersion = settingKey[String]("Version number of the Lift Web Framework")
+lazy val liftEdition = settingKey[String]("Lift Edition (short version number to append to artifact name)")
 
 name := "messagebus"
 
@@ -7,15 +20,14 @@ organization := "net.liftmodules"
 
 version := "1.1-SNAPSHOT"
 
-liftVersion := (liftVersion ?? "3.4.3").value
-
-liftEdition := liftVersion.value.substring(0,3)
+liftVersion := { liftVersion ?? "3.4.3" }.value
+liftEdition := { liftVersion apply { _.substring(0,3) } }.value
 
 moduleName := name.value + "_" + liftEdition.value
 
 scalaVersion := "2.13.6"
 
-crossScalaVersions := Seq("2.13.6", "2.12.14")
+crossScalaVersions := Seq(scalaVersion.value, "2.12.14")
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
@@ -31,30 +43,13 @@ libraryDependencies ++= Seq(
     "org.specs2"  %% "specs2-core" % "4.12.12"     % "test"
 )
 
-//useGpg := true
-//usePgpKeyHex("B41A0844")
-
-//publishTo in ThisBuild := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
-
-// For local deployment:
-credentials += Credentials( file("sonatype.credentials") )
-
-// For the build server:
-credentials += Credentials( file("/private/liftmodules/sonatype.credentials") )
+ThisBuild / publishTo := Some(publishSshRepo)
 
 publishMavenStyle := true
 
 Test / publishArtifact := false
 
 pomIncludeRepository := { _ => false }
-
 
 pomExtra := (
   <url>https://github.com/pdyraga/lift-message-bus</url>
