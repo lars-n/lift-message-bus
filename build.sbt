@@ -18,7 +18,7 @@ name := "messagebus"
 
 organization := "net.liftmodules"
 
-version := "1.1-SNAPSHOT"
+version := "1.1-LN"
 
 liftVersion := { liftVersion ?? "3.4.3" }.value
 liftEdition := { liftVersion apply { _.substring(0,3) } }.value
